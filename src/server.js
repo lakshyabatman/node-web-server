@@ -1,24 +1,22 @@
 require('./config/config');
 const express =require('express');
+const _=require("lodash");
 const hbs=require('hbs');
 const path=require('path');
-const bodyParser= require('body-parser')
+const bodyParser= require('body-parser');
 const app= express();
-const {Todo}=require('./db/todos')
+const {Todo}=require('./db/todos');
+const {users}=require('./db/users');
 app.set("views",path.join(__dirname+"/views"));
-hbs.registerPartials(__dirname + '/views/partial')
+hbs.registerPartials(__dirname + '/views/partial');
 app.set('view engine' ,'hbs');
 app.use(express.static(__dirname + "/public"));
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:false}))
-
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:false}));
 
 hbs.registerHelper("date",()=>{
     return new Date().getFullYear()
 })
-
-
-
 
 app.post("/todos",(req,res)=>{
     const newTodo = new Todo({
@@ -105,11 +103,16 @@ app.get("/updateTodo",(req,res)=>{
     }
 })
 
+app.post('/users',(req,res)=>{
+    const body =_.pick(req.body,[email,password])
+})
+
 app.get("/about",(req,res)=>{
     res.render("about.hbs",{
         "title":"About Page",
     })
 })
+
 const port=process.env.PORT || 4000
 app.listen(port,function(){
     console.log("Server started at Port ",port)

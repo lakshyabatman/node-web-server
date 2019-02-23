@@ -20,7 +20,17 @@ const users= mongoose.model('users',{
        minlength:1,
        maxlength:20,
        trim:true
-   }
+   },
+   tokens:[{
+      access:{
+          type:String,
+          required:true
+      },
+      token:{
+          type:String,
+          required:true
+      } 
+   }]
 })
 
 module.exports={users}
