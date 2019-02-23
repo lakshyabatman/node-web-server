@@ -1,5 +1,5 @@
+require('./config/config');
 const express =require('express');
-const mongoose= require('mongoose');
 const hbs=require('hbs');
 const path=require('path');
 const bodyParser= require('body-parser')
@@ -10,16 +10,13 @@ hbs.registerPartials(__dirname + '/views/partial')
 app.set('view engine' ,'hbs');
 app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended:false}))
 
 
 hbs.registerHelper("date",()=>{
     return new Date().getFullYear()
 })
 
-
-
-mongoose.Promise=global.Promise
-mongoose.connect("mongodb://localhost:27017/TodoApp",{useNewUrlParser:true})
 
 
 
@@ -53,22 +50,59 @@ app.get("/todos",(req,res)=>{
     })
 })
 
+app.delete("/todos",(req,res)=>{
+   
+    console.log(req.body._id)
+
+    Todo.findByIdAndRemove({
+        _id: req.body._id
+        }).then((todo)=>{
+        if(!todo){
+            return res.status(400).send("Todo doesnt exist")
+        }
+        res.send(todo)
+    }).catch((err)=>{
+        res.status(400).send(err)
+    })
+})
+
 app.get("/updateTodo",(req,res)=>{
-    db.collection('Todos').findOneAndUpdate({
-           text:req.query.text
-        },{
-            $set:{
-                completed:true
-            }
+    if(req.query.text){
+        Todo.findByIdAndUpdate((req.query.id),{
+            text:req.query.text
         },
         {
-            returnOriginal:false,
-        }
-        ).then((result)=>{
-            
-            console.log(result)
-            res.send("Updated")
+            new:true
+        }).then((todo)=>{
+            res.send({
+                status:"ok",
+                todo
+            })
+        }).catch((err)=>{
+            res.status(400).send({
+                status:"Failed",
+                err
+            })
         })
+    }
+    else{
+        Todo.findByIdAndUpdate((req.query.id),{
+            completed:true
+        },
+        {
+            new:true
+        }).then((todo)=>{
+            res.send({
+                status:"ok",
+                todo
+            })
+        }).catch((err)=>{
+            res.status(400).send({
+                status:"Failed",
+                err
+            })
+        })
+    }
 })
 
 app.get("/about",(req,res)=>{
