@@ -5,8 +5,9 @@ const hbs=require('hbs');
 const path=require('path');
 const bodyParser= require('body-parser');
 const app= express();
-const {Todo}=require('./db/todos');
-const {users}=require('./db/users');
+const {Todo}=require('./Schema/todos');
+const {users}=require('./Schema/users');
+const {authenticate}=require('./middleware/authenticate')
 app.set("views",path.join(__dirname+"/views"));
 hbs.registerPartials(__dirname + '/views/partial');
 app.set('view engine' ,'hbs');
@@ -104,7 +105,22 @@ app.get("/updateTodo",(req,res)=>{
 })
 
 app.post('/users',(req,res)=>{
-    const body =_.pick(req.body,[email,password])
+    var body =_.pick(req.body,['email','password'])
+    var user= new users(body)
+    user.save().then(()=>{
+        return user.generateAuthToken()
+    }).then((token)=>{
+        res.header('x-auth',token).send(user)
+    }).catch((e)=>{
+        res.status(400).send(e)
+    })
+
+
+})
+
+
+app.get('/users',authenticate,(req,res)=>{
+    res.send(req.user)
 })
 
 app.get("/about",(req,res)=>{
